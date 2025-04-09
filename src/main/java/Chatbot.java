@@ -9,15 +9,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
+import io.github.cdimascio.dotenv.Dotenv;
+
 
 public class Chatbot {
 
     private static OpenAiAssistantEngine assistant;
-    private static final String APIKEY = System.getenv("OPENAI_API_KEY");
+
     private static final File USER_INFO_FILE = new File("user_info.txt");
     private static final File ACU_DATABASE_FILE = new File("acu_database.txt");
 
     public static void main(String[] args) {
+        Dotenv dotenv = Dotenv.load();
+        String APIKEY = dotenv.get("MY_API_KEY");
+        System.out.println("API Key: " + APIKEY);
+
+
         assistant = new OpenAiAssistantEngine(APIKEY);
         System.out.println("-------------------------");
         System.out.println("Setting up AI Academic Advisor...");
