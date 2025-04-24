@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.sql.*;
+import java.util.*;
 
 import org.json.JSONObject;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -15,9 +17,40 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class Chatbot {
 
     private static OpenAiAssistantEngine assistant;
-
     private static final File USER_INFO_FILE = new File("user_info.txt");
     private static final File ACU_DATABASE_FILE = new File("acu_database.txt");
+
+
+    private static final String DB_URL =
+    "jdbc:sqlite:" + ACU_DATABASE_FILE.getAbsolutePath();
+
+    private static final List<String>  major_game_questions = List.of(
+        "How many hours of sleep do you survive on each night?",
+        "Do you run on caffeine, water, or existential dread?",
+        "Would you rather sketch in a sketchbook, debug a stubborn bug, or solder a tricky circuit?",
+        "Are you more into hoodies or high-vis lab coats?",
+        "What's your favorite late-night ritual: scrolling Stack Overflow, binge-watching true-crime, or painting with pastels?",
+        "When you hit an error, do you rubber-duck it, consult Freud, or write a prayer?",
+        "Do you live by \"It works on my machine,\" \"Amen,\" or \"Show me the ROI?\"",
+        "Would you choose a VR headset, a microscope, or a courtroom drama marathon?",
+        "Are you a spreadsheet pivot-tablewizard or a vector-path manipulator?",
+        "Do you collect resistors, paint swatches, or scripture verses?",
+        "Would you rather have Reeves yell at you saying \"TYPE FASTER\" or enjoy an unstressful education?",
+        "Do you have a shrine of Reeves memorabilia from ARCO or another movie obsession?",
+        "Are you the kind of person who schedules coffee breaks down to the minute?",
+        "When faced with a problem, do you “circle back” or \"firewall-reset\" first?",
+        "Would you tweak shader code for hours or perfect your joystick skills?"       
+        );
+
+    private static boolean promptGame(String userInput) {
+                String lc = userInput.toLowerCase();
+                return lc.contains("undecided")
+                    || lc.contains("not sure")
+                    || lc.contains("help picking")
+                    || lc.contains("need help choosing");
+           }
+
+    
 
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
