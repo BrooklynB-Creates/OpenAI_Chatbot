@@ -39,7 +39,22 @@ public class Chatbot {
         "Do you have a shrine of Reeves memorabilia from ARCO or another movie obsession?",
         "Are you the kind of person who schedules coffee breaks down to the minute?",
         "When faced with a problem, do you “circle back” or \"firewall-reset\" first?",
-        "Would you tweak shader code for hours or perfect your joystick skills?"       
+        "Would you tweak shader code for hours or perfect your joystick skills?",
+        "Do you ever look at a motherboard and feel emotions?",
+        "Can you recite the periodic table like a rap battle?",
+        "Would you rather write a 20-page research paper or fix one missing semicolon?",
+        "Do you feel personally attacked by poorly kerned fonts?",
+        "Have you ever reorganized your bookshelves by the Dewey Decimal System just for fun?",
+        "When you see a microscope, do you whisper 'my precious'?",
+        "Is your dream job somewhere between CSI and HGTV?",
+        "Would you rather decode cryptic bug reports or argue with a toddler about logic?",
+        "Does your idea of fun include pie charts and passive-aggressive emails?",
+        "Do you roleplay as a lawyer when someone cuts in line at Starbucks?",
+        "Do you make to-do lists for your to-do lists?",
+        "Are your DMs full of memes, research studies, or conspiracy theories about fonts?",
+        "Do you get emotionally attached to your PowerPoint transitions?",
+        "Is your favorite smell that of solder smoke, book pages, or cold brew?",
+        "Have you ever whispered sweet nothings to a robot or spreadsheet?"       
         );
 
 
