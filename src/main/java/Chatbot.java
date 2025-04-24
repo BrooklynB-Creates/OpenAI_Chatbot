@@ -18,7 +18,7 @@ public class Chatbot {
 
     private static OpenAiAssistantEngine assistant;
     private static final File USER_INFO_FILE = new File("user_info.txt");
-    private static final File ACU_DATABASE_FILE = new File("acu_database.txt");
+    private static final File ACU_DATABASE_FILE = new File("acu_database1.txt");
 
 
     private static final String DB_URL =
@@ -42,6 +42,9 @@ public class Chatbot {
         "Would you tweak shader code for hours or perfect your joystick skills?"       
         );
 
+
+        
+
     private static boolean promptGame(String userInput) {
                 String lc = userInput.toLowerCase();
                 return lc.contains("undecided")
@@ -50,7 +53,44 @@ public class Chatbot {
                     || lc.contains("need help choosing");
            }
 
-    
+    private static void playGame(BufferedReader reader) throws IOException, SQLException {
+
+        Map<String,Integer> scores = new HashMap<>();
+
+        System.out.println("Welcome to the \"Pick Your Major\" game!");
+        try (Connection conn = DriverManager.getConnection(DB_URL)){
+            for (String q : major_game_questions) {
+                System.out.println("\nGame: " + q);
+                String answer = reader.readLine().trim().toLowerCase();
+                for (String token : answer.split("\\W+")) {
+                    if (token.isBlank()) continue;
+
+                    String sql = "SELECT majorID from major_keywords WHERE lower(keyword) LIKE ?";
+
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setString(1, "%" + token + "%");
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()) {
+                            String major = rs.getString("majorID");
+                            scores.put(major, scores.getOrDefault(major, 0) + 1);
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("Error executing SQL query: " + e.getMessage());
+                    }
+                }
+            }
+        }
+        String highestMatch = scores.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse(null);
+        if (highestMatch != null) {
+            System.out.println("Game: Based on your answers, you might be interested in the " + highestMatch + " major!");
+        } else {
+            System.out.println("Game: Sorry, we couldn't find a match for your answers.");
+        }
+        System.out.println("Game: Thanks for playing! Remember, this is just a fun way to explore your options. Good luck with your decision!");
+    }
 
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
@@ -159,74 +199,70 @@ public class Chatbot {
                 if (userInput.equalsIgnoreCase("exit")) {
                     break;
                 }
-
                 if (userInput.isEmpty()) {
                     continue;
                 }
 
-                if (threadId == null) {
-                    List<JSONObject> messages = List.of(
-                            new JSONObject()
-                                    .put("role", "user")
-                                    .put("content", userInput)
-                    );
-                    threadId = assistant.createThread(messages, null, null);
+                if (promptGame(userInput)) {
+                    try {
+                        playGame(reader);
+                    } catch (SQLException | IOException e) {
+                        System.out.println("Game error: " + e.getMessage());
+                    }
+                    continue;
+                }
+
+                try {
                     if (threadId == null) {
-                        System.out.println("Failed to create thread. Please try again.");
+                        List<JSONObject> messages = List.of(
+                            new JSONObject().put("role", "user").put("content", userInput)
+                        );
+                        threadId = assistant.createThread(messages, null, null);
+                        if (threadId == null) {
+                            System.out.println("Failed to create thread. Please try again.");
+                            continue;
+                        }
+                    } else {
+                        String messageId = assistant.addMessageToThread(threadId, userInput);
+                        if (messageId == null) {
+                            System.out.println("Failed to send message. Please try again.");
+                            continue;
+                        }
+                    }
+
+                    String runId = assistant.createRun(
+                        threadId, assistantId,
+                        null, null, null, null,
+                        null, null, null, null,
+                        null, null, null, null,
+                        null, null, null, null
+                    );
+
+                    if (runId == null) {
+                        System.out.println("Failed to create run. Please try again.");
                         continue;
                     }
-                } else {
-                    String messageId = assistant.addMessageToThread(threadId, userInput);
-                    if (messageId == null) {
-                        System.out.println("Failed to send message. Please try again.");
+
+                    boolean completed = assistant.waitForRunCompletion(threadId, runId, 60, 1000);
+                    if (!completed) {
+                        System.out.println("The assistant encountered an issue. Please try again.");
                         continue;
                     }
-                }
 
-                String runId = assistant.createRun(
-                        threadId,
-                        assistantId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                );
-
-                if (runId == null) {
-                    System.out.println("Failed to create run. Please try again.");
-                    continue;
-                }
-
-                boolean completed = assistant.waitForRunCompletion(threadId, runId, 60, 1000);
-
-                if (!completed) {
-                    System.out.println("The assistant encountered an issue. Please try again.");
-                    continue;
-                }
-                List<String> retrievedMessages = assistant.listMessages(threadId, runId);
-                if (retrievedMessages != null && !retrievedMessages.isEmpty()) {
-                    System.out.println("\nAdvisor: " + retrievedMessages.get(0));
-                } else {
-                    System.out.println("No response received. Please try again.");
+                    List<String> retrievedMessages = assistant.listMessages(threadId, runId);
+                    if (retrievedMessages != null && !retrievedMessages.isEmpty()) {
+                        System.out.println("\nAdvisor: " + retrievedMessages.get(0));
+                    } else {
+                        System.out.println("No response received. Please try again.");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Chat error: " + e.getMessage());
                 }
             }
 
             if (threadId != null) {
                 assistant.deleteResource("threads", threadId);
             }
-
         } catch (IOException e) {
             System.out.println("Error reading input: " + e.getMessage());
         }
