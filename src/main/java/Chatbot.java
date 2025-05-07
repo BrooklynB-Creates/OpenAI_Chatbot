@@ -18,12 +18,13 @@ public class Chatbot {
 
     private static OpenAiAssistantEngine assistant;
     private static final File USER_INFO_FILE = new File("user_info.txt");
-    private static final File ACU_DATABASE_FILE = new File("acu_database1.txt");
+    private static final File ACU_DATABASE_FILE = new File("acu_database.txt");
 
 
     private static final String DB_URL =
     "jdbc:sqlite:" + ACU_DATABASE_FILE.getAbsolutePath();
-
+    
+    //questions for the game
     private static final List<String>  major_game_questions = List.of(
         "How many hours of sleep do you survive on each night?",
         "Do you run on caffeine, water, or existential dread?",
@@ -38,7 +39,7 @@ public class Chatbot {
         "Would you rather have Reeves yell at you saying \"TYPE FASTER\" or enjoy an unstressful education?",
         "Do you have a shrine of Reeves memorabilia from ARCO or another movie obsession?",
         "Are you the kind of person who schedules coffee breaks down to the minute?",
-        "When faced with a problem, do you “circle back” or \"firewall-reset\" first?",
+        "When faced with a problem, do you \"circle back\" or \"firewall-reset\" first?",
         "Would you tweak shader code for hours or perfect your joystick skills?",
         "Do you ever look at a motherboard and feel emotions?",
         "Can you recite the periodic table like a rap battle?",
@@ -59,20 +60,23 @@ public class Chatbot {
 
 
         
-
+    // Check if the user wants to play the game based on their input
     private static boolean promptGame(String userInput) {
                 String lc = userInput.toLowerCase();
                 return lc.contains("undecided")
                     || lc.contains("not sure")
                     || lc.contains("help picking")
-                    || lc.contains("need help choosing");
+                    || lc.contains("need help choosing")
+                    || lc.contains("game");
            }
 
     private static void playGame(BufferedReader reader) throws IOException, SQLException {
 
         Map<String,Integer> scores = new HashMap<>();
 
-
+        File gameDatabaseFile = new File("acu_database1.txt");
+        String gameDbUrl = "jdbc:sqlite:" + gameDatabaseFile.getAbsolutePath();
+        
         System.out.println("""                                                    
  _____ _____ _____    _____ _       _   _       _   
 |  _  |     |  |  |  |     | |_ ___| |_| |_ ___| |_ 
@@ -90,10 +94,15 @@ public class Chatbot {
         
         
         System.out.println("Welcome to the \"Pick Your Major\" game!");
-        try (Connection conn = DriverManager.getConnection(DB_URL)){
+        System.out.println("Type 'stop' at any time to end the game.\n\n");
+        try (Connection conn = DriverManager.getConnection(gameDbUrl)){
             for (String q : major_game_questions) {
                 System.out.println("\nGame: " + q);
                 String answer = reader.readLine().trim().toLowerCase();
+                if (answer.equalsIgnoreCase("stop")) {
+                    System.out.println("Game: You chose to stop the game early. Goodbye!");
+                    return;
+                }
                 for (String token : answer.split("\\W+")) {
                     if (token.isBlank()) continue;
 
@@ -226,6 +235,7 @@ public class Chatbot {
         String threadId = null;
 
         System.out.println("\n=== ACU AI Academic Advisor Chat ===");
+        System.out.println("If you don't know your major or are unsure which on to pick, type 'game' to play a the \"Pick your Major\" game!");
         System.out.println("Type 'exit' to end the conversation");
 
         try {
