@@ -89,8 +89,8 @@ public class Chatbot {
         //print the game title
         System.out.println("""                                                    
  _____ _____ _____    _____ _       _   _       _   
-|  _  |     |  |  |  |     | |_ ___| |_| |_ ___| |_ 
-|     |   --|  |  |  |   --|   | .'|  _| . | . |  _|
+|  _  |     |  |  |  |     | |_ ___| |_| |_ ___| |_       
+|     |   --|  |  |  |   --|   | .'|  _| . | . |  _|       
 |__|__|_____|_____|  |_____|_|_|__,|_| |___|___|_|  
 
                                               
@@ -270,10 +270,15 @@ public class Chatbot {
     private static void startInteractiveChat(String assistantId) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String threadId = null;
-
-        System.out.println("\n=== ACU AI Academic Advisor Chat ===");
+System.out.println("""
+      ╔══════════════════════════════════════╗
+      ║      ACU AI Academic Advisor Chat    ║
+      ╚══════════════════════════════════════╝
+        """);
+       // System.out.println("\n=== ACU AI Academic Advisor Chat ===\n");
+       
         System.out.println("If you don't know your major or are unsure which on to pick, type 'game' to play a the \"Pick your Major\" game!");
-        System.out.println("Type 'exit' to end the conversation");
+        System.out.println("Type 'exit' to end the conversation\n");
 
         try {
             String userInput;
