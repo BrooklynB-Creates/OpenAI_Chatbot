@@ -18,65 +18,107 @@ public class Chatbot {
 
     private static OpenAiAssistantEngine assistant;
     private static final File USER_INFO_FILE = new File("user_info.txt");
-    private static final File ACU_DATABASE_FILE = new File("acu_database1.txt");
+    private static final File ACU_DATABASE_FILE = new File("acu_database.txt");
 
 
     private static final String DB_URL =
     "jdbc:sqlite:" + ACU_DATABASE_FILE.getAbsolutePath();
+    
+    //questions for the game
+    private static final List<String> major_game_questions = List.of(
+  // CS (2)
+  "Do you find yourself as a coffee-stained keyboard owner or a Stack Overflow scroller?",
+  "Would you rather be a curly-braces fanatic or a sterile-glove evangelist?",
+  "Would you rather be yelled at by Reeves while he says 'TYPE FASTER' or listen to his 600th story about ARCO?",
 
-    private static final List<String>  major_game_questions = List.of(
-        "How many hours of sleep do you survive on each night?",
-        "Do you run on caffeine, water, or existential dread?",
-        "Would you rather sketch in a sketchbook, debug a stubborn bug, or solder a tricky circuit?",
-        "Are you more into hoodies or high-vis lab coats?",
-        "What's your favorite late-night ritual: scrolling Stack Overflow, binge-watching true-crime, or painting with pastels?",
-        "When you hit an error, do you rubber-duck it, consult Freud, or write a prayer?",
-        "Do you live by \"It works on my machine,\" \"Amen,\" or \"Show me the ROI?\"",
-        "Would you choose a VR headset, a microscope, or a courtroom drama marathon?",
-        "Are you a spreadsheet pivot-tablewizard or a vector-path manipulator?",
-        "Do you collect resistors, paint swatches, or scripture verses?",
-        "Would you rather have Reeves yell at you saying \"TYPE FASTER\" or enjoy an unstressful education?",
-        "Do you have a shrine of Reeves memorabilia from ARCO or another movie obsession?",
-        "Are you the kind of person who schedules coffee breaks down to the minute?",
-        "When faced with a problem, do you “circle back” or \"firewall-reset\" first?",
-        "Would you tweak shader code for hours or perfect your joystick skills?",
-        "Do you ever look at a motherboard and feel emotions?",
-        "Can you recite the periodic table like a rap battle?",
-        "Would you rather write a 20-page research paper or fix one missing semicolon?",
-        "Do you feel personally attacked by poorly kerned fonts?",
-        "Have you ever reorganized your bookshelves by the Dewey Decimal System just for fun?",
-        "When you see a microscope, do you whisper 'my precious'?",
-        "Is your dream job somewhere between CSI and HGTV?",
-        "Would you rather decode cryptic bug reports or argue with a toddler about logic?",
-        "Does your idea of fun include pie charts and passive-aggressive emails?",
-        "Do you roleplay as a lawyer when someone cuts in line at Starbucks?",
-        "Do you make to-do lists for your to-do lists?",
-        "Are your DMs full of memes, research studies, or conspiracy theories about fonts?",
-        "Do you get emotionally attached to your PowerPoint transitions?",
-        "Is your favorite smell that of solder smoke, book pages, or cold brew?",
-        "Have you ever whispered sweet nothings to a robot or spreadsheet?"       
-        );
 
+  // ART (1)
+  "Would you rather be a gallery-hopping addict or a true-crime binge watcher?",
+
+  // EE (1)
+  "Are you a multimeter maestro or a cloud-computing creator?",
+
+  // DET (2)
+  "Would you rather be a sprite-animator or a verse bragger?",
+  "Do you find yourself as a game-engine whisperer or a business-strategy guru?",
+
+  // BIBLE (1)
+  "Are you a scripture-flashcard maker or a mood-swings tracker?",
+
+  // PSYC (1)
+  "Would you rather be a personality-test hoarder or a leadership-book reader?",
+
+  // BIO (2)
+  "Are you a petri-dish decorator or a crime-scene investigator?",
+  "Do you find yourself as a genome-gardener or a project-manager?",
+
+  // CJ (1)
+  "Are you a law-enforcement enthusiast or a market-research analyst?",
+
+  // BBA (2)
+  "Are you a spreadsheet wizard or a wave-form worshipper?",
+  "Do you find yourself as a risk-taker investor or an empathy-overloader?",
+
+  // IS (1)
+  "Are you a data-security guardian or a logic-gate guru?",
+
+  // BM (1)
+  "Would you rather be a brand-strategy creator or a level-design hoarder?"
+);
 
         
-
+    // Check if the user wants to play the game based on their input
     private static boolean promptGame(String userInput) {
                 String lc = userInput.toLowerCase();
                 return lc.contains("undecided")
                     || lc.contains("not sure")
                     || lc.contains("help picking")
-                    || lc.contains("need help choosing");
+                    || lc.contains("need help choosing")
+                    || lc.contains("game");
            }
 
+           //launch major game
+    // This method handles the game logic and user interaction
     private static void playGame(BufferedReader reader) throws IOException, SQLException {
 
-        Map<String,Integer> scores = new HashMap<>();
+        Map<String,Integer> scores = new HashMap<>();//stores the scores for each major
 
+        File gameDatabaseFile = new File("game_keywords.txt"); //connect to the game database
+        String gameDbUrl = "jdbc:sqlite:" + gameDatabaseFile.getAbsolutePath();
+        
+        //print the game title
+        System.out.println("""                                                    
+ _____ _____ _____    _____ _       _   _       _   
+|  _  |     |  |  |  |     | |_ ___| |_| |_ ___| |_ 
+|     |   --|  |  |  |   --|   | .'|  _| . | . |  _|
+|__|__|_____|_____|  |_____|_|_|__,|_| |___|___|_|  
+
+                                              
+ _____       _            _____               
+|     |___  |_|___ ___   |   __|___ _____ ___ 
+| | | | .'| | | . |  _|  |  |  | .'|     | -_|
+|_|_|_|__,|_| |___|_|    |_____|__,|_|_|_|___|
+          |___|                               
+                                                    
+        """);
+        
+        
         System.out.println("Welcome to the \"Pick Your Major\" game!");
-        try (Connection conn = DriverManager.getConnection(DB_URL)){
+        System.out.println("Type 'stop' at any time to end the game.\n\n");
+
+        //loop through the questions and get the answers from the user
+        try (Connection conn = DriverManager.getConnection(gameDbUrl)){
             for (String q : major_game_questions) {
                 System.out.println("\nGame: " + q);
                 String answer = reader.readLine().trim().toLowerCase();
+                if (answer.equalsIgnoreCase("stop")) {
+                    //allow the user to stop the game at any time
+                    System.out.println("Game: You chose to stop the game early. Goodbye!");
+                    return;
+                }
+
+                //tokenize the answer and check for keywords in the database
+                // This regex splits the answer into tokens based on non-word characters
                 for (String token : answer.split("\\W+")) {
                     if (token.isBlank()) continue;
 
@@ -85,6 +127,9 @@ public class Chatbot {
                     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                         pstmt.setString(1, "%" + token + "%");
                         ResultSet rs = pstmt.executeQuery();
+
+                        //for each token, check if it matches a keyword in the database
+                        // If it does, increment the score for that major
                         while (rs.next()) {
                             String major = rs.getString("majorID");
                             scores.put(major, scores.getOrDefault(major, 0) + 1);
@@ -95,22 +140,46 @@ public class Chatbot {
                 }
             }
         }
-        String highestMatch = scores.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey)
-            .orElse(null);
-        if (highestMatch != null) {
-            System.out.println("Game: Based on your answers, you might be interested in the " + highestMatch + " major!");
-        } else {
+
+
+        // Get the top 3 matches sorted by score in descending order
+        List<Map.Entry<String, Integer>> topMatches = scores.entrySet().stream()
+        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+        .limit(3)
+        .toList(); 
+
+        //determine the major with the highest score
+        //String highestMatch = scores.entrySet().stream()
+            //.max(Map.Entry.comparingByValue())
+            //.map(Map.Entry::getKey)
+            //.orElse(null);
+
+            //display the results to the user
+            if (!topMatches.isEmpty()) {
+                System.out.println("\n\nGame: Based on your answers, here are your top matches:");
+                for (int i = 0; i < topMatches.size(); i++) {
+                    Map.Entry<String, Integer> entry = topMatches.get(i);
+                    System.out.println((i + 1) + ". " + entry.getKey() + " major (Score: " + entry.getValue() + ")");
+                }
+                System.out.println("\n\n");
+            } else {
             System.out.println("Game: Sorry, we couldn't find a match for your answers.");
         }
-        System.out.println("Game: Thanks for playing! Remember, this is just a fun way to explore your options. Good luck with your decision!");
+
+        //end game message
+        System.out.println("""
+      ╔══════════════════════════════╗
+      ║      Thanks for Playing!     ║
+      ╚══════════════════════════════╝
+      """);
+
+        System.out.println("Game: Thanks for playing! Remember, this is just a fun way to explore your options. Good luck with your decision!\n\n");
     }
 
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
         String APIKEY = dotenv.get("MY_API_KEY");
-        System.out.println("API Key: " + APIKEY);
+       // System.out.println("API Key: " + APIKEY);
 
 
         assistant = new OpenAiAssistantEngine(APIKEY);
@@ -203,6 +272,7 @@ public class Chatbot {
         String threadId = null;
 
         System.out.println("\n=== ACU AI Academic Advisor Chat ===");
+        System.out.println("If you don't know your major or are unsure which on to pick, type 'game' to play a the \"Pick your Major\" game!");
         System.out.println("Type 'exit' to end the conversation");
 
         try {
