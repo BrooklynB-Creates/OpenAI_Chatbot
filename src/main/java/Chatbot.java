@@ -72,6 +72,23 @@ public class Chatbot {
 
         Map<String,Integer> scores = new HashMap<>();
 
+
+        System.out.println("""                                                    
+ _____ _____ _____    _____ _       _   _       _   
+|  _  |     |  |  |  |     | |_ ___| |_| |_ ___| |_ 
+|     |   --|  |  |  |   --|   | .'|  _| . | . |  _|
+|__|__|_____|_____|  |_____|_|_|__,|_| |___|___|_|  
+
+                                              
+ _____       _            _____               
+|     |___  |_|___ ___   |   __|___ _____ ___ 
+| | | | .'| | | . |  _|  |  |  | .'|     | -_|
+|_|_|_|__,|_| |___|_|    |_____|__,|_|_|_|___|
+          |___|                               
+                                                    
+        """);
+        
+        
         System.out.println("Welcome to the \"Pick Your Major\" game!");
         try (Connection conn = DriverManager.getConnection(DB_URL)){
             for (String q : major_game_questions) {
@@ -100,17 +117,23 @@ public class Chatbot {
             .map(Map.Entry::getKey)
             .orElse(null);
         if (highestMatch != null) {
-            System.out.println("Game: Based on your answers, you might be interested in the " + highestMatch + " major!");
+            System.out.println("Game: Based on your answers, you might be interested in the " + highestMatch + " major!\n\n");
         } else {
             System.out.println("Game: Sorry, we couldn't find a match for your answers.");
         }
-        System.out.println("Game: Thanks for playing! Remember, this is just a fun way to explore your options. Good luck with your decision!");
+        System.out.println("""
+      ╔══════════════════════════════╗
+      ║      Thanks for Playing!     ║
+      ╚══════════════════════════════╝
+      """);
+
+        System.out.println("Game: Thanks for playing! Remember, this is just a fun way to explore your options. Good luck with your decision!\n\n");
     }
 
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
         String APIKEY = dotenv.get("MY_API_KEY");
-        System.out.println("API Key: " + APIKEY);
+       // System.out.println("API Key: " + APIKEY);
 
 
         assistant = new OpenAiAssistantEngine(APIKEY);
